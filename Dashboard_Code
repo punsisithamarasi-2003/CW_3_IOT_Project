@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>🌱 Smart Agriculture IoT System</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --nodeA: #00ffa3;
+            --nodeC: #00d1ff;
+            --motor: #ff007a;
+            --glass: rgba(255, 255, 255, 0.04);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            margin: 0; padding: 20px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at top right, #020243, #050505);
+            color: white; min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        body::before {
+            content: "🌿"; 
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-60%, -60%);
+            font-size: 60vw;
+            z-index: -1;
+            pointer-events: none;
+            background: linear-gradient(135deg, #00ffa3, #00d1ff, #ff007a);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            opacity: 0.08; 
+            filter: blur(5px);
+            animation: breathe 8s ease-in-out infinite;
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.06; }
+            50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.1; }
+        }
+
+        .header { width: 100%; max-width: 1400px; margin-bottom: 30px; text-align: center; }
+        .node-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 30px; width: 100%; max-width: 1400px;
+        }
+
+        .node-block {
+            background: var(--glass);
+            backdrop-filter: blur(30px);
+            border: 1px solid var(--border);
+            border-radius: 35px;
+            padding: 35px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        }
+
+        .node-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 25px; border-bottom: 1px solid var(--border);
+            padding-bottom: 15px;
+        }
+
+        .big-emoji { font-size: 3rem; display: block; margin-bottom: 10px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.2)); }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        
+        .stat-card { 
+            background: rgba(255,255,255,0.03); 
+            padding: 25px; 
+            border-radius: 25px; 
+            border: 1px solid rgba(255,255,255,0.05);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        .stat-card:hover { transform: translateY(-5px); background: rgba(255,255,255,0.05); }
+
+        .label { font-size: 0.8rem; color: #aaa; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; }
+        .value { font-size: 2.8rem; font-weight: 800; margin-top: 10px; }
+        
+        .color-A { color: var(--nodeA); text-shadow: 0 0 20px rgba(0,255,163,0.4); }
+        .color-C { color: var(--nodeC); text-shadow: 0 0 20px rgba(0,209,255,0.4); }
+
+        #chart-section { grid-column: 1 / -1; height: 380px; }
+
+        /* Pump button styling */
+        .pump-btn {
+            margin-top: 12px;
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid rgba(255,255,255,0.10);
+            border-radius: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            background: rgba(255,255,255,0.08);
+            color: white;
+            transition: transform 0.15s ease, background 0.2s ease;
+        }
+        .pump-btn:hover { transform: translateY(-2px); background: rgba(255,255,255,0.12); }
+        .pump-btn:active { transform: translateY(0px); }
+        .pump-btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1 style="font-size: 2.5rem; margin: 0;">AGRI-IOT <span style="color: var(--nodeC);">PRO</span></h1>
+        <p style="color: #888; letter-spacing: 2px;">NETWORK GATEWAY • LIVE FEED</p>
+    </div>
+
+    <div class="node-container">
+        
+        <div class="node-block" style="border-top: 6px solid var(--nodeA);">
+            <div class="node-header">
+                <span style="font-weight: 800; color: #eee;">📡 NODE A: ATMOSPHERE</span>
+                <span style="font-size: 0.75rem; background: rgba(0,255,163,0.1); color: var(--nodeA); padding: 4px 12px; border-radius: 20px;">LoRa 433MHz</span>
+            </div>
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <span class="big-emoji">🌡️</span>
+                    <span class="label">Temp</span>
+                    <div class="value color-A"><span id="temp">--</span>°C</div>
+                </div>
+                <div class="stat-card">
+                    <span class="big-emoji">💧</span>
+                    <span class="label">Humidity</span>
+                    <div class="value color-A"><span id="hum">--</span>%</div>
+                </div>
+                <div class="stat-card" style="grid-column: span 2;">
+                    <span class="big-emoji">☀️</span>
+                    <span class="label">Ambient Light</span>
+                    <div class="value color-A"><span id="light">--</span> <small style="font-size: 1.2rem;">LUX</small></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="node-block" style="border-top: 6px solid var(--nodeC);">
+            <div class="node-header">
+                <span style="font-weight: 800; color: #eee;">📡 NODE C: IRRIGATION</span>
+                <span style="font-size: 0.75rem; background: rgba(0,209,255,0.1); color: var(--nodeC); padding: 4px 12px; border-radius: 20px;">LoRa 433MHz</span>
+            </div>
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <span class="big-emoji">🪴</span>
+                    <span class="label">Moisture</span>
+                    <div class="value color-C" id="soil">--</div>
+                </div>
+
+                <!-- Pump card with button -->
+                <div class="stat-card">
+                    <span id="motor-emoji" class="big-emoji">💤</span>
+                    <span class="label">Pump</span>
+                    <div class="value" id="motor-status" style="color:var(--motor); font-size: 1.8rem;">IDLE</div>
+
+                    <!-- Added button -->
+                    <button id="pumpBtn" class="pump-btn" disabled>Loading...</button>
+                </div>
+
+                <div class="stat-card">
+                    <span class="big-emoji">🌊</span>
+                    <span class="label">Flow</span>
+                    <div class="value color-C"><span id="flow">--</span> <small style="font-size: 0.9rem;">L/M</small></div>
+                </div>
+                <div class="stat-card">
+                    <span class="big-emoji">📊</span>
+                    <span class="label">Total</span>
+                    <div class="value color-C"><span id="total">--</span> <small style="font-size: 0.9rem;">L</small></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="node-block" id="chart-section">
+            <span class="label">📈 Real-Time Analytics</span>
+            <canvas id="agriChart" style="margin-top: 25px;"></canvas>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        // Added set()
+        import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCTBP64LIQBCCV9J9NZ2ZnbRBRzcpJZNrg",
+            authDomain: "iot-project-e9ca5.firebaseapp.com",
+            databaseURL: "https://iot-project-e9ca5-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "iot-project-e9ca5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        //  Chart 
+        const ctx = document.getElementById('agriChart').getContext('2d');
+        const agriChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    { label: 'Soil', borderColor: '#00d1ff', backgroundColor: 'rgba(0,209,255,0.1)', data: [], tension: 0.4, fill: true, pointRadius: 0 },
+                    { label: 'Temp', borderColor: '#00ffa3', data: [], tension: 0.4, pointRadius: 0 }
+                ]
+            },
+            options: { 
+                responsive: true, maintainAspectRatio: false, 
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: '#555' } },
+                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#555' } }
+                }
+            }
+        });
+
+        // Pump button logic 
+        const pumpBtn = document.getElementById("pumpBtn");
+        let currentPump = false;        // actual pump status from /sensors
+        let lastSentCmd = null;         // optional: track what we sent
+
+        function updatePumpButton() {
+            pumpBtn.disabled = false;
+            pumpBtn.textContent = currentPump ? "TURN OFF PUMP" : "TURN ON PUMP";
+        }
+
+        pumpBtn.addEventListener("click", async () => {
+            // Toggle command opposite to current state
+            const cmd = !currentPump;
+            pumpBtn.disabled = true;
+            pumpBtn.textContent = "Sending...";
+
+            try {
+                await set(ref(db, "/control/PumpCmd"), cmd);  // write boolean
+                lastSentCmd = cmd;
+                // Button will update when /sensors updates back from Node C
+            } catch (e) {
+                console.error("Pump command error:", e);
+                pumpBtn.textContent = "ERROR (try again)";
+            } finally {
+                setTimeout(() => {
+                    // re-enable even if sensors didn't update yet
+                    pumpBtn.disabled = false;
+                    updatePumpButton();
+                }, 800);
+            }
+        });
+
+        //  Live sensors 
+        onValue(ref(db, '/sensors'), (snapshot) => {
+            const data = snapshot.val();
+            if (!data) return;
+
+            document.getElementById('temp').innerText = data.Temperature ?? "--";
+            document.getElementById('hum').innerText = data.Humidity ?? "--";
+            document.getElementById('light').innerText = data.Light ?? "--";
+            document.getElementById('soil').innerText = data.Soil ?? "--";
+            document.getElementById('flow').innerText = data.Flow ?? "--";
+            document.getElementById('total').innerText = (data.Total != null) ? parseFloat(data.Total).toFixed(2) : "--";
+
+            const motorS = document.getElementById('motor-status');
+            const motorE = document.getElementById('motor-emoji');
+
+            currentPump = !!data.Pump; //  pump state from sensors
+            updatePumpButton();
+
+            if (currentPump) {
+                motorS.innerText = "RUNNING";
+                motorS.style.color = "var(--nodeA)";
+                motorE.innerText = "⚡";
+            } else {
+                motorS.innerText = "IDLE";
+                motorS.style.color = "var(--motor)";
+                motorE.innerText = "💤";
+            }
+
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            agriChart.data.labels.push(time);
+            agriChart.data.datasets[0].data.push(data.Soil ?? null);
+            agriChart.data.datasets[1].data.push(data.Temperature ?? null);
+
+            if (agriChart.data.labels.length > 20) {
+                agriChart.data.labels.shift();
+                agriChart.data.datasets.forEach(d => d.data.shift());
+            }
+            agriChart.update();
+        });
+
+        // Optional: you can also listen to /control/PumpCmd if you want to display "Command Sent"
+        // onValue(ref(db, '/control/PumpCmd'), (snap) => console.log("PumpCmd:", snap.val()));
+    </script>
+</body>
+</html>
+
