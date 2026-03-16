@@ -1,0 +1,56 @@
+#include <SPI.h>
+#include <LoRa.h>
+#include <DHT.h>
+	
+// LoRa pins 
+#define SS   7
+#define RST  10
+#define DIO0 3
+	
+#define DHTPIN 8
+#define DHTTYPE DHT11
+	
+DHT dht(DHTPIN, DHTTYPE);
+	
+void setup() {
+  Serial.begin(115200);
+  delay(2000);
+  dht.begin();
+  
+  Serial.println("Node A Starting...");
+	
+  LoRa.setPins(SS, RST, DIO0);
+  if (!LoRa.begin(433E6)) {
+    Serial.println("LoRa failed");
+    while (1);
+	  }
+
+   Serial.println("LoRa OK");
+	}
+	
+void loop() {
+  int ldrValue = analogRead(2);
+	
+  float temp = dht.readTemperature();
+  float hum  = dht.readHumidity();
+  
+  if (isnan(temp) || isnan(hum)) {
+    Serial.println("DHT failed – using last values");
+    temp = -1;
+    hum  = -1;
+   }
+
+  String payload = "ID=A Light=" + String(ldrValue) +
+                   " Temp=" + String(temp) +
+                   " Hum=" + String(hum);
+
+  LoRa.beginPacket();
+  LoRa.print(payload);
+  LoRa.endPacket();
+
+  Serial.print("Sent: ");
+  Serial.println(payload);
+
+  delay(3000);
+	}
+
